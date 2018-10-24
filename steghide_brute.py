@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import subprocess
 import time
 
@@ -36,3 +37,5 @@ for line in f:
             print('pwd: %s\n\t... Success!' % line[:-1])
             print('Brutforce completed in %d seconds.' % (current_time() - s_time))
             break
+
+f.close()
