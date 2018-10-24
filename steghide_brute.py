@@ -4,6 +4,7 @@ import time
 current_time = lambda: int(round(time.time()))
 
 f = open('rockyou.txt', 'r')
+steg_path = '~/Downloads/steg.jpg'
 s_time = current_time()
 c_time = current_time()
 attempts = 0
@@ -11,7 +12,7 @@ attempts = 0
 print('Bruteforcing stegfile...')
 for line in f:
     try:
-        attempt = subprocess.check_output('steghide extract -sf ~/Downloads/steg2.jpg -p %s' % line[:-1], shell=True, stderr=subprocess.STDOUT)
+        attempt = subprocess.check_output('steghide extract -sf %s -p %s' % (steg_path, line[:-1]), shell=True, stderr=subprocess.STDOUT)
         attempts += 1
         if 'could not extract' in attempt:
             if(current_time() - c_time > 5):
