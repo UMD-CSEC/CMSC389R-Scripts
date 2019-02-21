@@ -114,11 +114,7 @@ def pull_and_check(hw_name, due_date, late_submissions):
 
 # generates a late_submissions.txt file
 def create_latefile(late_submissions, hw_name):
-    # rename any old late_submissions.txt file
-    if "late_submissions.txt" in os.listdir(os.getcwd()):
-        os.system("mv late_submissions.txt late_submissions.txt.old")
-        print("Renamed previous late_submissions.txt to late_submissions.txt.old")
-
+    # don't bother if there weren't any late submissions
     if len(late_submissions) == 0:
         print("No late submissions were found for %s." % (hw_name))
         return
@@ -135,7 +131,7 @@ def create_latefile(late_submissions, hw_name):
         else:
             late_lst.append("%s\t%s\n" % (name, "later than 3 days"))
     
-    f = open("late_submissions.txt", "w")
+    f = open("%s_late_submissions.txt" % (hw_name), "w")
     late_lst.sort()
     for line in late_lst:
         f.write(line)
