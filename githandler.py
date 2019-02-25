@@ -5,7 +5,6 @@ from datetime import datetime
 import os
 from pygit2 import clone_repository, Repository, GitError
 from pygit2 import GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL, GIT_SORT_TIME, GIT_SORT_TOPOLOGICAL, GIT_SORT_REVERSE
-import subprocess
 import sys
 import time
 
@@ -58,14 +57,19 @@ def clone(csvfile):
 def do_pull(name, repo, remote_name="origin"):
     for remote in repo.remotes:
         if remote.name == remote_name:
-            remote.fetch()
+            try:
+                remote.fetch()
+            except GitError as e:
+                print("Encountered an issue pulling %s's repository." % (name))
+                print("\tReceived error: %s" % (e))
+                return -1
+
             remote_master_id = repo.lookup_reference("refs/remotes/origin/master").target
             merge_result,_ = repo.merge_analysis(remote_master_id)
             
             # It's up to date, don't do anything
             if merge_result & GIT_MERGE_ANALYSIS_UP_TO_DATE:
                 print("Repository for %s already up to date." % (name))
-                return
             
             # Fastforward
             elif merge_result & GIT_MERGE_ANALYSIS_FASTFORWARD:
@@ -78,6 +82,8 @@ def do_pull(name, repo, remote_name="origin"):
                 print("Pulling remote changes for %s led to a conflict. Check this repo manually." % name)
             else:
                 print("Unexpected fetch/merge result when pulling repository for %s: %s" % (name, GIT_MERGE_ANALYSIS_NORMAL))
+                return -1
+            return 1
 
 # updates all student repos and and checks for late submissions of the assignment specified in the command
 # assumes you've already run this script with the -c arg
@@ -92,7 +98,10 @@ def pull_and_check(hw_name, due_date, late_submissions):
         repo = Repository("%s/.git" % (name))
 
         # pull changes
-        do_pull(name, repo)
+        ret = do_pull(name, repo)
+        if ret < 0:
+            print("Skipping %s due to error in do_pull()" % (name))
+            continue
 
         # find most recent commit where the supplied hw_name was edited
         commits = repo.walk(repo.head.target, GIT_SORT_TIME)
